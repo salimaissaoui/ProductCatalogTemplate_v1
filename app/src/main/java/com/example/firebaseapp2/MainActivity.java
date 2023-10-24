@@ -1,5 +1,17 @@
 package com.example.firebaseapp2;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.app.AlertDialog;
+
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -34,11 +46,14 @@ public class MainActivity extends AppCompatActivity {
     ListView listViewProducts;
 
     List<Product> products;
+    DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference databaseReference = database.getReference("products");
 
         editTextName = (EditText) findViewById(R.id.editTextName);
         editTextPrice = (EditText) findViewById(R.id.editTextPrice);
@@ -109,18 +124,44 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateProduct(String id, String name, double price) {
-
-        Toast.makeText(getApplicationContext(), "NOT IMPLEMENTED YET", Toast.LENGTH_LONG).show();
-    }
-
-    private void deleteProduct(String id) {
-
-        Toast.makeText(getApplicationContext(), "NOT IMPLEMENTED YET", Toast.LENGTH_LONG).show();
-    }
-
     private void addProduct() {
+        String name = editTextName.getText().toString().trim();
+        double price = Double.parseDouble(String.valueOf(editTextPrice.getText().toString()) );
+        if (!TextUtils.isEmpty((name))){
+            String id = databaseReference.push().getKey();
+            Product product = new Product(id, name, price);
+            databaseReference.child(id).setValue(product);
+            editTextName.setText("");
+            editTextPrice.setText("");
+            Toast.makeText(this, "Product added", Toast.LENGTH_LONG).show();
+        }
+        else{
+            Toast.makeText(this, "Please enter a name", Toast.LENGTH_LONG).show();
+        }
 
-        Toast.makeText(this, "NOT IMPLEMENTED YET", Toast.LENGTH_LONG).show();
+
+    }
+
+    private boolean deleteProduct(String id) {
+        DatabaseReference dR = FirebaseDatabase.getInstance().getReference("products").child(id);
+        dR.removeValue();
+        Toast.makeText(getApplicationContext(), "Product Deleted", Toast.LENGTH_LONG).show();
+        return true;
+
+
+    }
+
+    private void updateProduct(String id, String name, double price) {
+        DatabaseReference dR = FirebaseDatabase.getInstance().getReference("products").child(id);
+
+        Product product = new Product(id, name, price);
+        dR.setValue(product);
+
+        Toast.makeText(getApplicationContext(), "Product Updated", Toast.LENGTH_LONG).show();
+
     }
 }
+
+
+
+
